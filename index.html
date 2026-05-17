@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 Zakria & Amna — Stars Align 💕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Poppins', 'Segoe UI', 'Dancing Script', cursive;
+            background: radial-gradient(circle at center, #0a0a2a, #050510, #000000);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Love Message */
+        .message-container {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .love-card {
+            display: inline-block;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(15px);
+            padding: 15px 35px;
+            border-radius: 60px;
+            font-size: 14px;
+            font-family: 'Poppins', monospace;
+            border: 1px solid rgba(255,215,0,0.4);
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        .love-card .names {
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffd700, #ff69b4, #ffd700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { border-color: rgba(255,215,0,0.3); box-shadow: 0 0 15px rgba(255,215,0,0.2); }
+            50% { border-color: rgba(255,215,0,0.8); box-shadow: 0 0 30px rgba(255,215,0,0.5); }
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+        }
+
+        .instruction {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: rgba(255,255,255,0.4);
+            font-size: 11px;
+            font-family: monospace;
+            background: rgba(0,0,0,0.4);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: rgba(255,215,0,0.5);
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .love-card { padding: 10px 20px; font-size: 10px; }
+            .love-card .names { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="title">
+        ✨ COSMIC LOVE STORY ✨
+    </div>
+    
+    <div class="message-container">
+        <div class="love-card">
+            🤍 <span class="names">ZAKRIA 🤍 AMNA</span> 🤍<br>
+            Two souls, one constellation — written in the stars forever
+        </div>
+    </div>
+    
+    <div class="instruction">
+        🌟 Watch the magic unfold | Click anywhere for a shooting star shower 🌟
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let w = window.innerWidth;
+        let h = window.innerHeight;
+        
+        canvas.width = w;
+        canvas.height = h;
+        
+        // ========== ANIMATION STATE ==========
+        let animationStage = 0; // 0: forming ZAKRIA, 1: forming AMNA, 2: merging into heart
+        let progress = 0;
+        let stars = [];
+        let shootingStars = [];
+        let particles = [];
+        
+        // Star positions for ZAKRIA
+        const zakriaLetters = {
+            Z: [{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0},{x:0,y:1},{x:4,y:1},{x:0,y:2},{x:1,y:2},{x:2,y:2},{x:3,y:2},{x:4,y:2},{x:0,y:3},{x:4,y:3},{x:0,y:4},{x:1,y:4},{x:2,y:4},{x:3,y:4},{x:4,y:4}],
+            A: [{x:0,y:4},{x:1,y:3},{x:2,y:2},{x:3,y:3},{x:4,y:4},{x:2,y:0},{x:2,y:1},{x:1,y:1},{x:3,y:1},{x:0,y:2},{x:4,y:2},{x:1,y:4},{x:3,y:4}],
+            K: [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4},{x:1,y:1},{x:2,y:0},{x:2,y:2},{x:3,y:1},{x:3,y:3},{x:4,y:2}],
+            R: [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4},{x:1,y:0},{x:2,y:0},{x:3,y:1},{x:2,y:2},{x:1,y:2},{x:3,y:3},{x:4,y:4}],
+            I: [{x:2,y:0},{x:2,y:1},{x:2,y:2},{x:2,y:3},{x:2,y:4},{x:1,y:0},{x:3,y:0},{x:1,y:4},{x:3,y:4}],
+            A2: [{x:0,y:4},{x:1,y:3},{x:2,y:2},{x:3,y:3},{x:4,y:4},{x:2,y:0},{x:2,y:1},{x:1,y:1},{x:3,y:1},{x:0,y:2},{x:4,y:2},{x:1,y:4},{x:3,y:4}]
+        };
+        
+        // Star positions for AMNA
+        const amnaLetters = {
+            A: [{x:0,y:4},{x:1,y:3},{x:2,y:2},{x:3,y:3},{x:4,y:4},{x:2,y:0},{x:2,y:1},{x:1,y:1},{x:3,y:1},{x:0,y:2},{x:4,y:2},{x:1,y:4},{x:3,y:4}],
+            M: [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4},{x:4,y:0},{x:4,y:1},{x:4,y:2},{x:4,y:3},{x:4,y:4},{x:1,y:1},{x:2,y:2},{x:3,y:1}],
+            N: [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4},{x:4,y:0},{x:4,y:1},{x:4,y:2},{x:4,y:3},{x:4,y:4},{x:1,y:1},{x:2,y:2},{x:3,y:3}],
+            A2: [{x:0,y:4},{x:1,y:3},{x:2,y:2},{x:3,y:3},{x:4,y:4},{x:2,y:0},{x:2,y:1},{x:1,y:1},{x:3,y:1},{x:0,y:2},{x:4,y:2},{x:1,y:4},{x:3,y:4}]
+        };
+        
+        // Heart constellation points
+        const heartPoints = [];
+        for (let t = 0; t < Math.PI * 2; t += 0.08) {
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+            heartPoints.push({ x: x * 0.8, y: -y * 0.8 });
+        }
+        
+        // Collect all star positions for ZAKRIA
+        let zakriaStars = [];
+        let zakriaIndex = 0;
+        
+        // Letter layouts with positions
+        const zakriaLayout = [
+            { letter: 'Z', offsetX: -350, offsetY: -80, points: zakriaLetters.Z },
+            { letter: 'A', offsetX: -230, offsetY: -80, points: zakriaLetters.A },
+            { letter: 'K', offsetX: -130, offsetY: -80, points: zakriaLetters.K },
+            { letter: 'R', offsetX: -30, offsetY: -80, points: zakriaLetters.R },
+            { letter: 'I', offsetX: 50, offsetY: -80, points: zakriaLetters.I },
+            { letter: 'A', offsetX: 130, offsetY: -80, points: zakriaLetters.A2 }
+        ];
+        
+        const amnaLayout = [
+            { letter: 'A', offsetX: -230, offsetY: 80, points: amnaLetters.A },
+            { letter: 'M', offsetX: -130, offsetY: 80, points: amnaLetters.M },
+            { letter: 'N', offsetX: -30, offsetY: 80, points: amnaLetters.N },
+            { letter: 'A', offsetX: 70, offsetY: 80, points: amnaLetters.A2 }
+        ];
+        
+        // Generate star positions
+        function generateStars() {
+            zakriaLayout.forEach(letter => {
+                letter.points.forEach(point => {
+                    zakriaStars.push({
+                        x: letter.offsetX + point.x * 15,
+                        y: letter.offsetY + point.y * 12,
+                        targetX: letter.offsetX + point.x * 15,
+                        targetY: letter.offsetY + point.y * 12,
+                        size: 2 + Math.random() * 2,
+                        twinkle: Math.random() * Math.PI * 2,
+                        letter: letter.letter
+                    });
+                });
+            });
+            
+            // AMNA stars
+            amnaLayout.forEach(letter => {
+                letter.points.forEach(point => {
+                    zakriaStars.push({
+                        x: letter.offsetX + point.x * 15,
+                        y: letter.offsetY + point.y * 12,
+                        targetX: letter.offsetX + point.x * 15,
+                        targetY: letter.offsetY + point.y * 12,
+                        size: 2 + Math.random() * 2,
+                        twinkle: Math.random() * Math.PI * 2,
+                        letter: letter.letter,
+                        isAmna: true
+                    });
+                });
+            });
+        }
+        
+        generateStars();
+        
+        // Store initial positions (scattered)
+        zakriaStars.forEach(star => {
+            star.startX = (Math.random() - 0.5) * w;
+            star.startY = (Math.random() - 0.5) * h;
+            star.currentX = star.startX;
+            star.currentY = star.startY;
+            star.revealed = false;
+        });
+        
+        // Heart star positions
+        let heartStars = [];
+        heartPoints.forEach((point, idx) => {
+            heartStars.push({
+                x: w/2 + point.x * 4,
+                y: h/2 + point.y * 4 - 20,
+                size: 2.5,
+                twinkle: Math.random() * Math.PI * 2
+            });
+        });
+        
+        let allStarsRevealed = false;
+        let heartFormed = false;
+        let mergeProgress = 0;
+        
+        // Create shooting star
+        function createShootingStar() {
+            const startX = Math.random() * w;
+            const startY = Math.random() * h * 0.3;
+            const endX = startX + (Math.random() - 0.5) * 400;
+            const endY = startY + 300 + Math.random() * 200;
+            shootingStars.push({
+                x: startX,
+                y: startY,
+                endX: endX,
+                endY: endY,
+                progress: 0,
+                speed: 0.02 + Math.random() * 0.02,
+                trail: []
+            });
+        }
+        
+        // Create explosion particles
+        function createExplosion(x, y) {
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8 - 3,
+                    life: 60,
+                    size: Math.random() * 4 + 2,
+                    color: `hsl(${Math.random() * 60 + 300}, 100%, 60%)`
+                });
+            }
+        }
+        
+        // Draw star
+        function drawStar(x, y, size, opacity, glow = true) {
+            ctx.save();
+            if (glow) {
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = `rgba(255, 215, 0, ${opacity * 0.8})`;
+            }
+            
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 72 - 90) * Math.PI / 180;
+                const x1 = x + Math.cos(angle) * size;
+                const y1 = y + Math.sin(angle) * size;
+                const angle2 = (i * 72 + 36 - 90) * Math.PI / 180;
+                const x2 = x + Math.cos(angle2) * size * 0.4;
+                const y2 = y + Math.sin(angle2) * size * 0.4;
+                
+                if (i === 0) ctx.moveTo(x1, y1);
+                else ctx.lineTo(x1, y1);
+                ctx.lineTo(x2, y2);
+            }
+            ctx.closePath();
+            
+            const gradient = ctx.createLinearGradient(x - size, y - size, x + size, y + size);
+            gradient.addColorStop(0, `rgba(255, 215, 0, ${opacity})`);
+            gradient.addColorStop(1, `rgba(255, 100, 150, ${opacity * 0.8})`);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // Draw connecting lines between nearby stars
+        function drawConstellation(stars, revealedCount, centerX, centerY) {
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i < Math.min(stars.length, revealedCount); i++) {
+                for (let j = i + 1; j < Math.min(stars.length, revealedCount); j++) {
+                    const dx = stars[i].currentX - stars[j].currentX;
+                    const dy = stars[i].currentY - stars[j].currentY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 40 && dist > 5) {
+                        ctx.beginPath();
+                        ctx.moveTo(stars[i].currentX, stars[i].currentY);
+                        ctx.lineTo(stars[j].currentX, stars[j].currentY);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        // Animation variables
+        let frame = 0;
+        let revealCount = 0;
+        let revealSpeed = 1.5;
+        
+        // Click handler
+        canvas.addEventListener('click', (e) => {
+            createShootingStar();
+            createExplosion(e.clientX, e.clientY);
+        });
+        
+        // Resize
+        window.addEventListener('resize', () => {
+            w = window.innerWidth;
+            h = window.innerHeight;
+            canvas.width = w;
+            canvas.height = h;
+        });
+        
+        // Draw glowing background nebula
+        let time = 0;
+        
+        function drawBackground() {
+            time += 0.005;
+            
+            const grad = ctx.createLinearGradient(0, 0, w, h);
+            grad.addColorStop(0, '#0a0a2a');
+            grad.addColorStop(0.5, '#150a2a');
+            grad.addColorStop(1, '#0a0a1a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+            
+            // Nebula clouds
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.ellipse(
+                    w/2 + Math.sin(time * 0.5 + i) * 100,
+                    h/2 + Math.cos(time * 0.3 + i) * 80,
+                    200, 150, 0, 0, Math.PI * 2
+                );
+                ctx.fillStyle = `rgba(255, 100, 150, 0.02)`;
+                ctx.fill();
+            }
+        }
+        
+        // Animate
+        function animate() {
+            drawBackground();
+            
+            // Reveal stars gradually
+            if (revealCount < zakriaStars.length && !heartFormed) {
+                revealCount += revealSpeed;
+                if (revealCount > zakriaStars.length) revealCount = zakriaStars.length;
+                
+                // Animate stars moving to position
+                for (let i = 0; i < Math.min(zakriaStars.length, revealCount); i++) {
+                    const star = zakriaStars[i];
+                    star.currentX = star.currentX * 0.95 + star.targetX * 0.05;
+                    star.currentY = star.currentY * 0.95 + star.targetY * 0.05;
+                }
+            } else if (revealCount >= zakriaStars.length && !heartFormed) {
+                heartFormed = true;
+                mergeProgress = 0;
+            }
+            
+            // After both names are formed, merge into heart
+            if (heartFormed && mergeProgress < 1) {
+                mergeProgress += 0.005;
+                
+                for (let i = 0; i < zakriaStars.length; i++) {
+                    const star = zakriaStars[i];
+                    const targetIdx = Math.floor(Math.random() * heartStars.length);
+                    const target = heartStars[targetIdx];
+                    star.currentX = star.currentX * (1 - mergeProgress) + target.x * mergeProgress;
+                    star.currentY = star.currentY * (1 - mergeProgress) + target.y * mergeProgress;
+                }
+                
+                if (mergeProgress >= 0.98) {
+                    // Create final heart burst
+                    for (let i = 0; i < 100; i++) {
+                        particles.push({
+                            x: w/2,
+                            y: h/2,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10 - 5,
+                            life: 80,
+                            size: Math.random() * 5 + 2,
+                            color: `hsl(${Math.random() * 60 + 320}, 100%, 65%)`
+                        });
+                    }
+                }
+            }
+            
+            // Draw constellation lines
+            if (!heartFormed || mergeProgress < 0.7) {
+                drawConstellation(zakriaStars, revealCount);
+            }
+            
+            // Draw stars
+            for (let i = 0; i < Math.min(zakriaStars.length, revealCount); i++) {
+                const star = zakriaStars[i];
+                const twinkle = 0.6 + Math.sin(time * 3 + star.twinkle) * 0.4;
+                drawStar(star.currentX, star.currentY, star.size, twinkle);
+            }
+            
+            // Draw heart stars if merging
+            if (mergeProgress > 0.3) {
+                heartStars.forEach((star, idx) => {
+                    const opacity = Math.min(1, (mergeProgress - 0.3) / 0.7);
+                    drawStar(star.x, star.y, star.size * (0.8 + Math.sin(time * 5 + idx) * 0.2), opacity * 0.8);
+                });
+            }
+            
+            // Draw shooting stars
+            for (let i = shootingStars.length - 1; i >= 0; i--) {
+                const ss = shootingStars[i];
+                ss.progress += ss.speed;
+                
+                if (ss.progress >= 1) {
+                    shootingStars.splice(i, 1);
+                    continue;
+                }
+                
+                const x = ss.x + (ss.endX - ss.x) * ss.progress;
+                const y = ss.y + (ss.endY - ss.y) * ss.progress;
+                
+                // Trail
+                for (let j = 0; j < 5; j++) {
+                    const trailX = ss.x + (ss.endX - ss.x) * Math.max(0, ss.progress - j * 0.03);
+                    const trailY = ss.y + (ss.endY - ss.y) * Math.max(0, ss.progress - j * 0.03);
+                    ctx.beginPath();
+                    ctx.arc(trailX, trailY, 2 - j * 0.3, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 215, 0, ${0.3 - j * 0.05})`;
+                    ctx.fill();
+                }
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffd700';
+                ctx.fill();
+            }
+            
+            // Draw particles (explosion effects)
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.15;
+                p.life--;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                
+                const opacity = p.life / 60;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * opacity, 0, Math.PI * 2);
+                ctx.fillStyle = p.color || `rgba(255, 150, 200, ${opacity})`;
+                ctx.fill();
+            }
+            
+            // Draw subtle "ZAKRIA" and "AMNA" text in background
+            if (!heartFormed || mergeProgress < 0.5) {
+                ctx.font = 'bold 28px "Dancing Script", cursive';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = 0.08;
+                ctx.fillStyle = '#ffd700';
+                ctx.fillText('ZAKRIA', w/2, h/2 - 60);
+                ctx.fillText('AMNA', w/2, h/2 + 70);
+                ctx.globalAlpha = 1;
+            } else {
+                ctx.font = 'bold 40px "Dancing Script", cursive';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = Math.min(0.3, (mergeProgress - 0.5) * 0.6);
+                ctx.fillStyle = '#ff69b4';
+                ctx.fillText('✨ Forever One ✨', w/2, h/2 + 100);
+                ctx.globalAlpha = 1;
+            }
+            
+            frame++;
+            if (frame % 120 === 0 && !heartFormed) {
+                createShootingStar();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Initial shooting stars
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => createShootingStar(), i * 500);
+        }
+        
+        // Start animation
+        animate();
+        
+        // Resize
+        window.dispatchEvent(new Event('resize'));
+    </script>
+</body>
+</html>
